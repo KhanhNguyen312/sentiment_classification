@@ -1,0 +1,9 @@
+streamlit
+numpy
+pandas
+matplotlib
+underthesea
+scikit-learn
+wordcloud
+folium
+streamlit_folium
