@@ -309,7 +309,7 @@ def download_csv(df: pd.DataFrame, filename: str):
     df.to_csv(buffer, index=False, encoding='utf-8')
     buffer.seek(0)
     st.download_button(
-        label="Download File CSV",
+        label="Download Template File CSV",
         data=buffer.getvalue(),
         file_name=filename,
         mime="text/csv"
@@ -343,7 +343,7 @@ sep_line = """
     <hr style="border-top: 0.1px solid #F0FFFF; margin-top: 1rem; margin-bottom: 1rem;" />
 """
 st.markdown(custom_css, unsafe_allow_html=True)
-menu = ["Giới Thiệu", "Thông Tin Thuật Toán", "Đánh Giá Bình Luận","Đánh Giá Nhà Hàng"]
+menu = ["Giới Thiệu", "Thông Tin Thuật Toán", "Đánh Giá Nhà Hàng", "Đánh Giá Bình Luận"]
 choice = st.sidebar.selectbox('Menu', menu)
 st.subheader(f":green[{choice}]")
 
@@ -393,14 +393,14 @@ if choice == 'Giới Thiệu':
     st.write("Nguyễn Bá Đình - Email: dinhnb1412@gmail.com")
 
 elif choice == 'Thông Tin Thuật Toán':
-    st.write("#### :blue[1. Dataset Exploration:]")
-    st.write("Data source: Restaurants , Reviews")
+    st.write("#### :blue[1. Đánh giá các thuật toán:]")
+    st.write("Thông tin tập dữ liệu: Restaurants , Reviews")
     df_t = pd.read_csv('2_Reviews_head.csv')
     st.dataframe(df_t.head(5))
-    shape="""Dataset "Reviews" includes <span style="color: #339966;"><strong>29,958 </strong> </span>rows and <span style="color: #339966;"><strong>6</strong></span> columns
+    shape="""Dữ liệu "Reviews" bao gồm <span style="color: #339966;"><strong>29,958 </strong> </span>dòng và <span style="color: #339966;"><strong>6</strong></span> cột
              <p>
              """
-    shape2="""Dataset "Restaurants" includes <span style="color: #339966;"><strong>1,622  </strong> </span>rows and <span style="color: #339966;"><strong>6</strong></span> columns
+    shape2="""Dữ liệu "Restaurants" bao gồm <span style="color: #339966;"><strong>1,622  </strong> </span>dòng và <span style="color: #339966;"><strong>6</strong></span> cột
              <p>
              """
     st.markdown(shape, unsafe_allow_html=True)
@@ -408,23 +408,23 @@ elif choice == 'Thông Tin Thuật Toán':
 
     st.image('3.PNG', caption='Mức độ phân bố của các Nhà Hàng')
     st.image('2.jpg', caption='Mức độ phân bố rating của Nhà Hàng')
-    st.write("##### * Comment:")
+    st.write("##### * Nhận xét:")
     st.write("Dựa vào biểu đồ trên chúng ta có thể thấy rằng tập dữ liệu này có một mức độ mất cân bằng đáng kể giữa các nhãn rating.\
                 Với khoảng rating 6-10 chiếm 2/3 tập dữ liệu và chỉ 1/3 mẫu trong khoảng rating 0-6, chúng ta thấy rằng có một sự chênh lệch lớn giữa hai nhóm này. \
                 Điều này có thể gây ra các vấn đề khi chúng ta huấn luyện mô hình machine learning.")
     st.image('1.PNG', caption='So sánh thời gian và độ chính xác của các thuật toán')
     st.write("##                              ")
-    st.write("#### :blue[2. Model Sentiment Analysis:]")
-    st.subheader("Classification Report")
+    st.write("#### :blue[2. Kết quả thuật toán tốt nhất:]")
+    st.subheader("Thông số thuật toán")
     json_data = """
     {
-        "0": {
+        "Negative": {
             "precision": 0.88,
             "recall": 0.94,
             "f1-score": 0.91,
             "support": 4516
         },
-        "1": {
+        "Positive": {
             "precision": 0.94,
             "recall": 0.87,
             "f1-score": 0.90,
@@ -517,78 +517,80 @@ elif choice == 'Đánh Giá Bình Luận':
             download_csv(df, 'Kết quả dự đoán cảm xúc.csv')
 
 elif choice == 'Đánh Giá Nhà Hàng':  
-    on = st.toggle('ID Restaurant')
-    if on:
-        map_vietnam = folium.Map(location=[10.809929141198806, 106.64572837501036], zoom_start=10, width=800, height=600)
-        map_vietnam.add_child(folium.LatLngPopup())
-        choose = st.radio('Chọn 1 trong 2 phương thức: 👇'
-                        , ['Nhập ID Nhà Hàng', 'Chọn ID Nhà Hàng'])
-        id = None
-        if choose == 'Nhập ID Nhà Hàng':
-            id = get_id_input()
-        else:
-            try:
-                id = st.selectbox('Vui lòng chọn ID Nhà Hàng', tuple(df['ID']), index=14)
-            except KeyError as e:
-                st.warning('Vui lòng chọn đúng ID nhà hàng')
- 
-        result = {
-            "ID" : id,
-            "Name": df.loc[df['ID']==id]['Restaurant'],
-            "Price": df.loc[df['ID']==id]['Price'],
-            "Rating": str(round(df_comment[df_comment['IDRestaurant'] == id]['Rating'].mean(), 2)) + '/10'
-
-        }
-        data = pd.DataFrame(result)
-        st.dataframe(data)
-
-        folium.Marker([df.loc[id]['latitude'], df.loc[id]['longitude']]).add_to(map_vietnam)
-
-        df_pos_sort, df_neg_sort = handle_comment_(df_comment, id)
-
-        st.markdown("##### :blue[10 bình luận mới nhất về tích cực]")
-        st.dataframe(df_pos_sort.head(10))
-        st.markdown("##### :blue[10 bình luận mới nhất về tiêu cực]")
-        st.dataframe(df_neg_sort.head(10))
-
-        rows = st.columns(2)
+    map_vietnam = folium.Map(location=[10.809929141198806, 106.64572837501036], zoom_start=10, width=800, height=600)
+    map_vietnam.add_child(folium.LatLngPopup())
+    choose = st.radio('Chọn 1 trong 2 phương thức: 👇'
+                    , ['Nhập ID Nhà Hàng', 'Chọn ID Nhà Hàng'])
+    id = None
+    if choose == 'Nhập ID Nhà Hàng':
+        id = get_id_input()
+    else:
         try:
-            text1 = ' '.join(df_pos_sort['Comment'])
-            list_obj1 = filter_adjectives(text1)
-            lst_pos = []
-            for i in list_obj1:
-                if i in positive_words:
-                    lst_pos.append(i)
-            if len(lst_pos) == 0:
-                list_obj1 = ["No Positives"]
-            # Tạo WordCloud cho comment tích cực
-            wordcloud1 = WordCloud(width=400, height=400, random_state=42, background_color='white', max_words=20).generate(' '.join(lst_pos))
-            
-            # Tạo WordCloud cho comment tiêu cực
-            text2 = ' '.join(df_neg_sort['Comment'])
-            list_obj2 = filter_adjectives(text2)
+            id = st.selectbox('Vui lòng chọn ID Nhà Hàng', tuple(df['ID']), index=14)
+        except KeyError as e:
+            st.warning('Vui lòng chọn đúng ID nhà hàng')
 
-            lst_neg = []
-            for i in list_obj2:
-                if i in negative_words:
-                    lst_neg.append(i)
-            if len(list_obj1) == 0:
-                list_obj1 = ["No Negatives"]
-            wordcloud2 = WordCloud(width=400, height=400, random_state=42, background_color='white', max_words=20).generate(' '.join(lst_neg))
+    result = {
+        "ID" : id,
+        "Name": df.loc[df['ID']==id]['Restaurant'],
+        "Price": df.loc[df['ID']==id]['Price'],
+        "Rating": str(round(df_comment[df_comment['IDRestaurant'] == id]['Rating'].mean(), 2)) + '/10'
 
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
-            ax1.imshow(wordcloud1, interpolation='bilinear')
-            ax1.axis("off")
-            ax1.set_title('WordCloud Positive')
+    }
+    data = pd.DataFrame(result)
+    st.dataframe(data)
+    rows = st.columns(2)
+    rows[0].image('8.jpg',width=578)
+    rows[1].image('9.jpg',width=600)
 
-            ax2.imshow(wordcloud2, interpolation='bilinear')
-            ax2.axis("off")
-            ax2.set_title('WordCloud Negative')
-            st.pyplot(fig)
 
-        except Exception as e:
-            pass
-        folium_static(map_vietnam)
+    folium.Marker([df.loc[id]['latitude'], df.loc[id]['longitude']]).add_to(map_vietnam)
+
+    df_pos_sort, df_neg_sort = handle_comment_(df_comment, id)
+
+    st.markdown("##### :blue[10 bình luận mới nhất về tích cực]")
+    st.dataframe(df_pos_sort.head(10))
+    st.markdown("##### :blue[10 bình luận mới nhất về tiêu cực]")
+    st.dataframe(df_neg_sort.head(10))
+
+    rows = st.columns(2)
+    try:
+        text1 = ' '.join(df_pos_sort['Comment'])
+        list_obj1 = filter_adjectives(text1)
+        lst_pos = []
+        for i in list_obj1:
+            if i in positive_words:
+                lst_pos.append(i)
+        if len(lst_pos) == 0:
+            list_obj1 = ["No Positives"]
+        # Tạo WordCloud cho comment tích cực
+        wordcloud1 = WordCloud(width=400, height=400, random_state=42, background_color='white', max_words=20).generate(' '.join(lst_pos))
+        
+        # Tạo WordCloud cho comment tiêu cực
+        text2 = ' '.join(df_neg_sort['Comment'])
+        list_obj2 = filter_adjectives(text2)
+
+        lst_neg = []
+        for i in list_obj2:
+            if i in negative_words:
+                lst_neg.append(i)
+        if len(list_obj1) == 0:
+            list_obj1 = ["No Negatives"]
+        wordcloud2 = WordCloud(width=400, height=400, random_state=42, background_color='white', max_words=20).generate(' '.join(lst_neg))
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+        ax1.imshow(wordcloud1, interpolation='bilinear')
+        ax1.axis("off")
+        ax1.set_title('WordCloud Positive')
+
+        ax2.imshow(wordcloud2, interpolation='bilinear')
+        ax2.axis("off")
+        ax2.set_title('WordCloud Negative')
+        st.pyplot(fig)
+
+    except Exception as e:
+        pass
+    folium_static(map_vietnam)
 
 
     
